@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import Navbar from '@/components/Navbar'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { apiCall } from '@/utils/auth'
 
 const SellProduct = () => {
   const [formData, setFormData] = useState({
@@ -19,8 +20,9 @@ const SellProduct = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/products')
-        setProducts(response.data.products)
+        const response = await apiCall('http://localhost:8001/products')
+        const data = await response.json()
+        setProducts(data.products)
       } catch (error) {
         console.error('Failed to fetch products:', error)
         setProducts([])
@@ -65,15 +67,20 @@ const SellProduct = () => {
     setMessage('')
 
     try {
-      const response = await axios.post('http://localhost:8000/sell', {
-        product_name: formData.product_name,
-        quantity: parseInt(formData.quantity),
-        unit_price: parseFloat(formData.unit_price),
-        date: formData.date
+      const response = await apiCall('http://localhost:8001/sell', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_name: formData.product_name,
+          quantity: parseInt(formData.quantity),
+          unit_price: parseFloat(formData.unit_price),
+          date: formData.date
+        })
       })
 
-      if (response.data.success) {
-        setMessage(`${response.data.message}. Remaining stock: ${response.data.product.available_stock}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setMessage(`${data.message}. Available stock: ${data.product.available_stock}`)
         setMessageType('success')
         // Reset form
         setFormData({
@@ -83,7 +90,7 @@ const SellProduct = () => {
           date: new Date().toISOString().split('T')[0]
         })
       } else {
-        setMessage(response.data.message)
+        setMessage(data.message || 'Failed to sell product')
         setMessageType('error')
       }
     } catch (error: any) {
@@ -95,7 +102,8 @@ const SellProduct = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'editor']}>
+      <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -209,6 +217,7 @@ const SellProduct = () => {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }
 

@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
-from models import Product, AddHistory, SellHistory
-from schemas import AddProductRequest, SellProductRequest
+from models import Product, AddHistory, SellHistory, User, ActivityLog, UserRole as ModelUserRole
+from schemas import AddProductRequest, SellProductRequest, UserCreate
 from decimal import Decimal
+from auth import get_password_hash
+from activity import log_activity
 
-def add_product(db: Session, request: AddProductRequest):
+def add_product(db: Session, request: AddProductRequest, current_user: User = None):
     """
     Enhanced add product with pricing:
     1. Check if product exists
@@ -55,9 +57,19 @@ def add_product(db: Session, request: AddProductRequest):
     db.commit()
     db.refresh(product)
     
+    # Log activity
+    if current_user:
+        log_activity(
+            db, 
+            current_user, 
+            "Add Product", 
+            f"product {request.product_name}",
+            f"Added {request.quantity} units at ${request.unit_price} each (Total: ${total_amount})"
+        )
+    
     return product
 
-def sell_product(db: Session, request: SellProductRequest):
+def sell_product(db: Session, request: SellProductRequest, current_user: User = None):
     """
     Enhanced sell product with pricing:
     1. Check if product exists
@@ -102,6 +114,16 @@ def sell_product(db: Session, request: SellProductRequest):
     
     db.commit()
     db.refresh(product)
+    
+    # Log activity
+    if current_user:
+        log_activity(
+            db, 
+            current_user, 
+            "Sell Product", 
+            f"product {request.product_name}",
+            f"Sold {request.quantity} units at ${request.unit_price} each (Total: ${total_amount})"
+        )
     
     return product
 
@@ -326,7 +348,7 @@ def get_transaction_history(db: Session, start_date: str = None, end_date: str =
     
     return transactions
 
-def delete_add_history(db: Session, add_history_id: int):
+def delete_add_history(db: Session, add_history_id: int, current_user: User = None):
     """
     Delete an add_history record and update product totals accordingly.
     
@@ -365,9 +387,19 @@ def delete_add_history(db: Session, add_history_id: int):
     db.commit()
     db.refresh(product)
     
+    # Log activity
+    if current_user:
+        log_activity(
+            db, 
+            current_user, 
+            "Delete Add History", 
+            f"product {product.name}",
+            f"Deleted add history record (ID: {add_history_id}) - {add_record.quantity} units @ ${add_record.unit_price}"
+        )
+    
     return product
 
-def delete_sell_history(db: Session, sell_history_id: int):
+def delete_sell_history(db: Session, sell_history_id: int, current_user: User = None):
     """
     Delete a sell_history record and update product totals accordingly.
     
@@ -406,4 +438,80 @@ def delete_sell_history(db: Session, sell_history_id: int):
     db.commit()
     db.refresh(product)
     
+    # Log activity
+    if current_user:
+        log_activity(
+            db, 
+            current_user, 
+            "Delete Sell History", 
+            f"product {product.name}",
+            f"Deleted sell history record (ID: {sell_history_id}) - {sell_record.quantity} units @ ${sell_record.unit_price}"
+        )
+    
     return product
+
+# User Management Functions
+def create_user(db: Session, user_create: UserCreate, current_user: User):
+    """Create a new user (only superadmin can do this)"""
+    # Check if username already exists
+    existing_user = db.query(User).filter(User.username == user_create.username).first()
+    if existing_user:
+        return {"error": "Username already exists"}
+    
+    # Convert string role to enum
+    role_str = user_create.role if isinstance(user_create.role, str) else user_create.role.value
+    try:
+        role_enum = ModelUserRole(role_str)
+    except ValueError:
+        return {"error": f"Invalid role: {role_str}. Must be one of: superadmin, admin, editor, viewer"}
+    
+    # Create new user
+    hashed_password = get_password_hash(user_create.password)
+    new_user = User(
+        username=user_create.username,
+        password_hash=hashed_password,
+        role=role_enum
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    # Log activity
+    log_activity(
+        db, 
+        current_user, 
+        "Create User", 
+        f"user {user_create.username}",
+        f"Created new user with role {role_str}"
+    )
+    
+    return new_user
+
+def get_users(db: Session):
+    """Get all users"""
+    return db.query(User).all()
+
+def delete_user(db: Session, user_id: int, current_user: User):
+    """Delete a user (only superadmin can do this)"""
+    user_to_delete = db.query(User).filter(User.id == user_id).first()
+    if not user_to_delete:
+        return {"error": "User not found"}
+    
+    if user_to_delete.id == current_user.id:
+        return {"error": "Cannot delete your own account"}
+    
+    username = user_to_delete.username
+    db.delete(user_to_delete)
+    db.commit()
+    
+    # Log activity
+    log_activity(
+        db, 
+        current_user, 
+        "Delete User", 
+        f"user {username}",
+        f"Deleted user account"
+    )
+    
+    return {"message": f"User {username} deleted successfully"}

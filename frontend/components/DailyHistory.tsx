@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Minus, Trash2 } from 'lucide-react';
+import { Calendar, Download, Trash2, AlertCircle, Plus, Minus } from 'lucide-react';
+import { apiCall, canDelete } from '../utils/auth';
 
 interface TransactionHistoryItem {
   id: number;
@@ -42,7 +43,7 @@ const DailyHistory = () => {
         url += '?' + params.toString();
       }
 
-      const response = await fetch(url);
+      const response = await apiCall(url);
       if (!response.ok) throw new Error('Failed to fetch transaction history');
       
       const data: TransactionHistoryResponse = await response.json();
@@ -153,7 +154,7 @@ const DailyHistory = () => {
         ? `http://localhost:8001/history/add/${deleteConfirmation.transactionId}`
         : `http://localhost:8001/history/sell/${deleteConfirmation.transactionId}`;
 
-      const response = await fetch(endpoint, {
+      const response = await apiCall(endpoint, {
         method: 'DELETE'
       });
 
@@ -339,13 +340,15 @@ const DailyHistory = () => {
                               ${formatAmount(typeof transaction.total_amount === 'number' ? transaction.total_amount : parseFloat(transaction.total_amount || '0'))}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button
-                                onClick={() => handleDeleteClick(transaction)}
-                                className="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-md transition-colors duration-200"
-                                title={`Delete ${transaction.transaction_type} transaction`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {canDelete() && (
+                                <button
+                                  onClick={() => handleDeleteClick(transaction)}
+                                  className="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-md transition-colors duration-200"
+                                  title={`Delete ${transaction.transaction_type} transaction`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );

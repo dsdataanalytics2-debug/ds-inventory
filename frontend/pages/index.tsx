@@ -3,6 +3,8 @@ import axios from 'axios'
 import Navbar from '@/components/Navbar'
 import ProductTable from '@/components/ProductTable'
 import SummaryChart from '@/components/SummaryChart'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { apiCall } from '@/utils/auth'
 
 interface Product {
   id: number
@@ -42,8 +44,9 @@ const Dashboard = () => {
   // Fetch enhanced summary data with financial analytics
   const fetchSummary = async () => {
     try {
-      const response = await axios.get<{products: Product[]}>('http://localhost:8000/summary/enhanced')
-      setProducts(response.data.products)
+      const response = await apiCall('http://localhost:8001/summary/enhanced')
+      const data = await response.json()
+      setProducts(data.products)
     } catch (error) {
       console.error('Failed to fetch enhanced summary:', error)
       setProducts([])
@@ -56,10 +59,11 @@ const Dashboard = () => {
   const fetchDateRangeSummary = async (start: string, end: string) => {
     setIsFiltering(true)
     try {
-      const response = await axios.get<DateRangeSummaryData>(
-        `http://localhost:8000/summary?start=${start}&end=${end}`
+      const response = await apiCall(
+        `http://localhost:8001/summary?start=${start}&end=${end}`
       )
-      setFilteredData(response.data)
+      const data = await response.json()
+      setFilteredData(data)
     } catch (error) {
       console.error('Failed to fetch date range summary:', error)
       setFilteredData(null)
@@ -106,7 +110,8 @@ const Dashboard = () => {
   const totalStock = displayProducts.reduce((sum, p) => sum + (p.available_stock || 0), 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -332,6 +337,7 @@ const Dashboard = () => {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   )
 }
 

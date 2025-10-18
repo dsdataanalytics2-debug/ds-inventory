@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import axios from 'axios'
 import Navbar from '@/components/Navbar'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { apiCall } from '@/utils/auth'
 
 const AddProduct = () => {
   const [formData, setFormData] = useState({
@@ -46,15 +47,20 @@ const AddProduct = () => {
     setMessage('')
 
     try {
-      const response = await axios.post('http://localhost:8000/add', {
-        product_name: formData.product_name,
-        quantity: parseInt(formData.quantity),
-        unit_price: parseFloat(formData.unit_price),
-        date: formData.date
+      const response = await apiCall('http://localhost:8001/add', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_name: formData.product_name,
+          quantity: parseInt(formData.quantity),
+          unit_price: parseFloat(formData.unit_price),
+          date: formData.date
+        })
       })
 
-      if (response.data.success) {
-        setMessage(`${response.data.message}. Available stock: ${response.data.product.available_stock}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setMessage(`${data.message}. Available stock: ${data.product.available_stock}`)
         setMessageType('success')
         // Reset form
         setFormData({
@@ -64,7 +70,7 @@ const AddProduct = () => {
           date: new Date().toISOString().split('T')[0]
         })
       } else {
-        setMessage(response.data.message)
+        setMessage(data.message)
         setMessageType('error')
       }
     } catch (error: any) {
@@ -76,7 +82,8 @@ const AddProduct = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute allowedRoles={['superadmin', 'admin', 'editor']}>
+      <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -175,6 +182,7 @@ const AddProduct = () => {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }
 

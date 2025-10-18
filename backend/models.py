@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Numeric
+from sqlalchemy import Column, Integer, String, ForeignKey, Numeric, DateTime, Enum
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import enum
 from database import Base
 
 class Product(Base):
@@ -39,3 +41,32 @@ class SellHistory(Base):
     date = Column(String)
     
     product = relationship("Product", back_populates="sell_histories")
+
+class UserRole(enum.Enum):
+    superadmin = "superadmin"
+    admin = "admin"
+    editor = "editor"
+    viewer = "viewer"
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    role = Column(Enum(UserRole), default=UserRole.viewer)
+    created_at = Column(DateTime, default=func.now())
+    
+    activity_logs = relationship("ActivityLog", back_populates="user")
+
+class ActivityLog(Base):
+    __tablename__ = "activity_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    action = Column(String)  # "Add", "Edit", "Delete", "Sell"
+    target = Column(String)  # Target description (e.g., "product Paracetamol")
+    details = Column(String)  # Additional details about the action
+    timestamp = Column(DateTime, default=func.now())
+    
+    user = relationship("User", back_populates="activity_logs")

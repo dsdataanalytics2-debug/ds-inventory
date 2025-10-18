@@ -1,10 +1,11 @@
 import Head from 'next/head';
 import Navbar from '../components/Navbar';
 import DailyHistory from '../components/DailyHistory';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function DailyHistoryPage() {
   return (
-    <>
+    <ProtectedRoute>
       <Head>
         <title>Daily History - Inventory Management</title>
         <meta name="description" content="Daily add and sell history overview" />
@@ -17,6 +18,6 @@ export default function DailyHistoryPage() {
           <DailyHistory />
         </div>
       </main>
-    </>
+    </ProtectedRoute>
   );
 }

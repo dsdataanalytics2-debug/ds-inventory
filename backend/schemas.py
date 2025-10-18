@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from decimal import Decimal
+from datetime import datetime
+import enum
 
 class AddProductRequest(BaseModel):
     product_name: str
@@ -107,3 +109,79 @@ class DeleteResponse(BaseModel):
     success: bool
     message: str
     updated_product: Optional[Product] = None
+
+# Authentication Schemas
+class UserBase(BaseModel):
+    username: str
+    role: str  # Changed from UserRole enum to string for compatibility
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str = "viewer"  # Accept lowercase role string
+    
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v):
+        # Automatically convert to lowercase to ensure consistency
+        if isinstance(v, str):
+            v = v.lower()
+        # Validate it's a valid role
+        valid_roles = ['superadmin', 'admin', 'editor', 'viewer']
+        if v not in valid_roles:
+            raise ValueError(f'Invalid role. Must be one of: {", ".join(valid_roles)}')
+        return v
+
+class User(UserBase):
+    id: int
+    created_at: datetime
+    
+    @field_validator('role', mode='before')
+    @classmethod
+    def convert_role_enum_to_string(cls, v):
+        """Convert UserRole enum to string value"""
+        if hasattr(v, 'value'):
+            return v.value  # If it's an enum, return its value
+        return v  # If it's already a string, return as-is
+    
+    class Config:
+        from_attributes = True
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: User
+
+class ActivityLogBase(BaseModel):
+    action: str
+    target: str
+    details: Optional[str] = None
+
+class ActivityLog(ActivityLogBase):
+    id: int
+    user_id: int
+    timestamp: datetime
+    username: str  # Denormalized for easy display
+    user_role: str
+    
+    class Config:
+        from_attributes = True
+
+class ActivityLogResponse(BaseModel):
+    logs: List[ActivityLog]
+
+class AuthResponse(BaseModel):
+    success: bool
+    message: str
+    token: Optional[Token] = None
+
+class UsersResponse(BaseModel):
+    users: List[User]
+
+class DeleteUserResponse(BaseModel):
+    success: bool
+    message: str
