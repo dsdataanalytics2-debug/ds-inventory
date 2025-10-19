@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { LogOut, User, Activity, Users } from 'lucide-react'
-import { getUser, logout, canAddEdit, canManageUsers } from '../utils/auth'
+import { getUser, logout, canAddEdit, canManageUsers, canCreateUsers, canViewOwnActivities } from '../utils/auth'
 
 const Navbar = () => {
   const router = useRouter()
@@ -26,7 +26,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold">
-              Inventory Dashboard
+               Automation System
             </Link>
           </div>
           <div className="flex items-center space-x-4">
@@ -74,18 +74,30 @@ const Navbar = () => {
             >
               Transaction History
             </Link>
-            <button
-              onClick={handleActivityClick}
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
-                isActive('/activity') 
+            <Link
+              href="/liquid-demo"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                isActive('/liquid-demo') 
                   ? 'bg-blue-700' 
                   : 'hover:bg-blue-500'
               }`}
             >
-              <Activity className="w-4 h-4 mr-1" />
-              Activity
-            </button>
-            {canManageUsers() && (
+              🧪 Liquid Charts
+            </Link>
+            {canViewOwnActivities() && (
+              <button
+                onClick={handleActivityClick}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/activity') 
+                    ? 'bg-blue-700' 
+                    : 'hover:bg-blue-500'
+                }`}
+              >
+                <Activity className="w-4 h-4 mr-1" />
+                Activity
+              </button>
+            )}
+            {canCreateUsers() && (
               <Link
                 href="/users"
                 className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${

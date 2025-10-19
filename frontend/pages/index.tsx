@@ -44,7 +44,7 @@ const Dashboard = () => {
   // Fetch enhanced summary data with financial analytics
   const fetchSummary = async () => {
     try {
-      const response = await apiCall('http://localhost:8001/summary/enhanced')
+      const response = await apiCall('http://localhost:8000/summary/enhanced')
       const data = await response.json()
       setProducts(data.products)
     } catch (error) {
@@ -60,7 +60,7 @@ const Dashboard = () => {
     setIsFiltering(true)
     try {
       const response = await apiCall(
-        `http://localhost:8001/summary?start=${start}&end=${end}`
+        `http://localhost:8000/summary?start=${start}&end=${end}`
       )
       const data = await response.json()
       setFilteredData(data)

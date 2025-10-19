@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, UserPlus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { apiCall, getUser } from '../utils/auth';
+import { apiCall, getUser, canCreateUsers, canManageUsers, canAssignRoles } from '../utils/auth';
 
 interface User {
   id: number;
@@ -31,6 +31,9 @@ const UserManagement = () => {
   const [creating, setCreating] = useState(false);
 
   const currentUser = getUser();
+  const canCreate = canCreateUsers();
+  const canManage = canManageUsers();
+  const canAssign = canAssignRoles();
 
   useEffect(() => {
     fetchUsers();
@@ -39,7 +42,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiCall('http://localhost:8001/users');
+      const response = await apiCall('http://localhost:8000/users');
       const data = await response.json();
       setUsers(data.users || []);
       setError('');
@@ -57,7 +60,7 @@ const UserManagement = () => {
 
     try {
       console.log('Creating user with data:', createFormData);
-      const response = await apiCall('http://localhost:8001/register', {
+      const response = await apiCall('http://localhost:8000/register', {
         method: 'POST',
         body: JSON.stringify(createFormData)
       });
@@ -102,7 +105,7 @@ const UserManagement = () => {
     }
 
     try {
-      const response = await apiCall(`http://localhost:8001/users/${userId}`, {
+      const response = await apiCall(`http://localhost:8000/users/${userId}`, {
         method: 'DELETE'
       });
 
@@ -137,7 +140,7 @@ const UserManagement = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['superadmin']}>
+    <ProtectedRoute allowedRoles={['superadmin', 'admin']}>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-6xl mx-auto p-6">
@@ -147,14 +150,23 @@ const UserManagement = () => {
               <div className="flex items-center">
                 <Users className="w-6 h-6 text-blue-600 mr-2" />
                 <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+                <div className="ml-4 flex items-center">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    canManage ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                  }`}>
+                    {canManage ? 'Super Admin' : 'Admin'} Access
+                  </span>
+                </div>
               </div>
-              <button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Create User
-              </button>
+              {canCreate && (
+                <button
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create User
+                </button>
+              )}
             </div>
 
             {error && (
@@ -212,8 +224,8 @@ const UserManagement = () => {
                       >
                         <option value="viewer">Viewer</option>
                         <option value="editor">Editor</option>
-                        <option value="admin">Admin</option>
-                        <option value="superadmin">Super Admin</option>
+                        {canAssign && <option value="admin">Admin</option>}
+                        {canManage && <option value="superadmin">Super Admin</option>}
                       </select>
                     </div>
                   </div>
@@ -283,13 +295,24 @@ const UserManagement = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {user.id !== currentUser?.id && (
-                            <button
-                              onClick={() => handleDeleteUser(user.id, user.username)}
-                              className="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-md"
-                              title="Delete user"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <>
+                              {/* Only allow deletion based on permissions */}
+                              {(canManage || (canAssign && user.role !== 'superadmin')) && (
+                                <button
+                                  onClick={() => handleDeleteUser(user.id, user.username)}
+                                  className="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-md"
+                                  title="Delete user"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                              {/* Show restricted message for users that can't be deleted */}
+                              {!canManage && user.role === 'superadmin' && (
+                                <span className="text-gray-400 text-xs px-2 py-1 bg-gray-100 rounded">
+                                  Protected
+                                </span>
+                              )}
+                            </>
                           )}
                         </td>
                       </tr>

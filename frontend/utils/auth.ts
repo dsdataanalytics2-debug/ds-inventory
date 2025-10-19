@@ -49,6 +49,59 @@ export const canManageUsers = (): boolean => {
   return hasRole(['superadmin']);
 };
 
+// Enhanced permission functions for the new requirements
+export const canCreateUsers = (): boolean => {
+  return hasRole(['superadmin', 'admin']);
+};
+
+export const canViewAllActivities = (): boolean => {
+  return hasRole(['superadmin', 'admin']);
+};
+
+export const canViewOwnActivities = (): boolean => {
+  return hasRole(['superadmin', 'admin', 'editor', 'viewer']);
+};
+
+export const canAssignRoles = (): boolean => {
+  return hasRole(['superadmin', 'admin']);
+};
+
+export const isViewer = (): boolean => {
+  const user = getUser();
+  return user?.role === 'viewer';
+};
+
+export const isEditor = (): boolean => {
+  const user = getUser();
+  return user?.role === 'editor';
+};
+
+export const isAdmin = (): boolean => {
+  const user = getUser();
+  return user?.role === 'admin';
+};
+
+export const isSuperAdmin = (): boolean => {
+  const user = getUser();
+  return user?.role === 'superadmin';
+};
+
+export const getCurrentUserId = (): number | null => {
+  const user = getUser();
+  return user?.id || null;
+};
+
+export const canAccessUserData = (targetUserId: number): boolean => {
+  const currentUser = getUser();
+  if (!currentUser) return false;
+  
+  // Admins and superadmins can access all user data
+  if (hasRole(['superadmin', 'admin'])) return true;
+  
+  // Viewers and editors can only access their own data
+  return currentUser.id === targetUserId;
+};
+
 export const getAuthHeaders = (): Record<string, string> => {
   const token = getToken();
   const headers: Record<string, string> = {

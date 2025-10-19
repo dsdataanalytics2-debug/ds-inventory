@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Clock, User, Target } from 'lucide-react';
+import { Activity, Clock, User, Target, Shield, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { apiCall } from '../utils/auth';
+import { apiCall, canViewAllActivities, getCurrentUserId, getUser } from '../utils/auth';
 
 interface ActivityLog {
   id: number;
@@ -23,17 +23,38 @@ const ActivityHistory = () => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState<'own' | 'all'>('own');
+
+  const currentUser = getUser();
+  const canViewAll = canViewAllActivities();
+  const currentUserId = getCurrentUserId();
 
   useEffect(() => {
     fetchActivityLogs();
-  }, []);
+  }, [viewMode]);
 
   const fetchActivityLogs = async () => {
     try {
       setLoading(true);
-      const response = await apiCall('http://localhost:8001/activity-logs');
+      
+      // Build URL based on permissions and view mode
+      let url = 'http://localhost:8000/activity-logs';
+      
+      // If user can't view all activities, or they chose to view only their own
+      if (!canViewAll || viewMode === 'own') {
+        url += `?user_id=${currentUserId}`;
+      }
+      
+      const response = await apiCall(url);
       const data: ActivityLogResponse = await response.json();
-      setActivityLogs(data.logs || []);
+      
+      // Additional client-side filtering for security
+      let filteredLogs = data.logs || [];
+      if (!canViewAll) {
+        filteredLogs = filteredLogs.filter(log => log.user_id === currentUserId);
+      }
+      
+      setActivityLogs(filteredLogs);
       setError('');
     } catch (err: any) {
       setError('Failed to fetch activity logs');
@@ -108,7 +129,44 @@ const ActivityHistory = () => {
               <div className="flex items-center">
                 <Activity className="w-6 h-6 text-blue-600 mr-2" />
                 <h1 className="text-2xl font-bold text-gray-800">Activity History</h1>
+                <div className="ml-4 flex items-center">
+                  <Shield className="w-4 h-4 text-gray-500 mr-1" />
+                  <span className="text-sm text-gray-600">
+                    {canViewAll ? 'Admin View' : 'Personal View'}
+                  </span>
+                </div>
               </div>
+              
+              {/* View Mode Toggle - Only show for admins */}
+              {canViewAll && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">View:</span>
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setViewMode('own')}
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        viewMode === 'own'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                    >
+                      <Eye className="w-4 h-4 inline mr-1" />
+                      My Activities
+                    </button>
+                    <button
+                      onClick={() => setViewMode('all')}
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        viewMode === 'all'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                    >
+                      <Shield className="w-4 h-4 inline mr-1" />
+                      All Activities
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {error && (

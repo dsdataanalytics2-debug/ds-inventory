@@ -47,7 +47,7 @@ const AddProduct = () => {
     setMessage('')
 
     try {
-      const response = await apiCall('http://localhost:8001/add', {
+      const response = await apiCall('http://localhost:8000/add', {
         method: 'POST',
         body: JSON.stringify({
           product_name: formData.product_name,
