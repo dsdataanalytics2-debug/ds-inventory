@@ -147,7 +147,7 @@ def migrate_database():
         print(f"   - Migrated {len(old_products)} products")
         print(f"   - Migrated {len(old_add_history)} add history records") 
         print(f"   - Migrated {len(old_sell_history)} sell history records")
-        print(f"   - Default price of ${default_price} was used for existing records")
+        print(f"   - Default price of ৳{default_price} was used for existing records")
         
     except Exception as e:
         print(f"Migration failed: {str(e)}")

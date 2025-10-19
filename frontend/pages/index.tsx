@@ -213,7 +213,7 @@ const Dashboard = () => {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">$</span>
+                      <span className="text-white text-sm font-bold">৳</span>
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
@@ -222,7 +222,7 @@ const Dashboard = () => {
                         Added Value {filteredData && '(Range)'}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        ${filteredData ? (Number(filteredData.total_added_amount_in_range) || 0).toFixed(2) : totalAddedAmount.toFixed(2)}
+                        ৳{filteredData ? (Number(filteredData.total_added_amount_in_range) || 0).toFixed(2) : totalAddedAmount.toFixed(2)}
                       </dd>
                     </dl>
                   </div>
@@ -244,7 +244,7 @@ const Dashboard = () => {
                         Revenue {filteredData && '(Range)'}
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        ${filteredData ? (Number(filteredData.total_sold_amount_in_range) || 0).toFixed(2) : totalSoldAmount.toFixed(2)}
+                        ৳{filteredData ? (Number(filteredData.total_sold_amount_in_range) || 0).toFixed(2) : totalSoldAmount.toFixed(2)}
                       </dd>
                     </dl>
                   </div>

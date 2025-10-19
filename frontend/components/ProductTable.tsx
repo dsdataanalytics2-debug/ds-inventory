@@ -19,7 +19,7 @@ interface ProductTableProps {
 const ProductTable = ({ products, enhanced = false }: ProductTableProps) => {
   const formatCurrency = (amount: number | undefined | null) => {
     const numAmount = Number(amount)
-    return (numAmount && !isNaN(numAmount)) ? `$${numAmount.toFixed(2)}` : '$0.00'
+    return (numAmount && !isNaN(numAmount)) ? `৳${numAmount.toFixed(2)}` : '৳0.00'
   }
 
   return (

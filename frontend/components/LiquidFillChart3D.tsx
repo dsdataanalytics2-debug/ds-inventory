@@ -299,7 +299,7 @@ const LiquidFillChart3D: React.FC<LiquidFillChart3DProps> = ({ products }) => {
                             </span>
                             <div className="text-right">
                               <div className="font-bold text-blue-800">{bar.totalAdded}</div>
-                              <div className="text-blue-600 text-xs">${bar.addedAmount.toFixed(2)}</div>
+                              <div className="text-blue-600 text-xs">৳{bar.addedAmount.toFixed(2)}</div>
                             </div>
                           </div>
                         </div>
@@ -326,7 +326,7 @@ const LiquidFillChart3D: React.FC<LiquidFillChart3DProps> = ({ products }) => {
                             </span>
                             <div className="text-right">
                               <div className="font-bold text-red-800">{bar.sold}</div>
-                              <div className="text-red-600 text-xs">${bar.soldAmount.toFixed(2)}</div>
+                              <div className="text-red-600 text-xs">৳{bar.soldAmount.toFixed(2)}</div>
                             </div>
                           </div>
                         </div>

@@ -247,7 +247,7 @@ const DailyHistory = () => {
               </div>
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h3 className="text-sm font-medium text-green-800 mb-1">Total Added Amount</h3>
-                <p className="text-2xl font-bold text-green-900">${formatAmount(getTotalAddedAmount())}</p>
+                <p className="text-2xl font-bold text-green-900">৳{formatAmount(getTotalAddedAmount())}</p>
               </div>
               <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                 <h3 className="text-sm font-medium text-red-800 mb-1">Total Sold Qty</h3>
@@ -255,7 +255,7 @@ const DailyHistory = () => {
               </div>
               <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                 <h3 className="text-sm font-medium text-red-800 mb-1">Total Sold Amount</h3>
-                <p className="text-2xl font-bold text-red-900">${formatAmount(getTotalSoldAmount())}</p>
+                <p className="text-2xl font-bold text-red-900">৳{formatAmount(getTotalSoldAmount())}</p>
               </div>
             </div>
           )}
@@ -332,12 +332,12 @@ const DailyHistory = () => {
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.transaction_type === 'add' ? 'text-green-600' : 'text-red-600'
                             }`}>
-                              ${formatAmount(typeof transaction.unit_price === 'number' ? transaction.unit_price : parseFloat(transaction.unit_price || '0'))}
+                              ৳{formatAmount(typeof transaction.unit_price === 'number' ? transaction.unit_price : parseFloat(transaction.unit_price || '0'))}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.transaction_type === 'add' ? 'text-green-600' : 'text-red-600'
                             }`}>
-                              ${formatAmount(typeof transaction.total_amount === 'number' ? transaction.total_amount : parseFloat(transaction.total_amount || '0'))}
+                              ৳{formatAmount(typeof transaction.total_amount === 'number' ? transaction.total_amount : parseFloat(transaction.total_amount || '0'))}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               {canDelete() && (
