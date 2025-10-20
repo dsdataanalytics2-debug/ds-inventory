@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 
 interface LoginResponse {
@@ -71,8 +72,19 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <Lock className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto h-20 w-20 relative mb-4 animate-pulse">
+            <Image
+              src="/logo.png"
+              alt="Automation System Logo"
+              fill
+              className="object-contain transition-transform duration-300 hover:scale-105"
+              priority
+              onLoad={() => {
+                // Remove pulse animation once loaded
+                const logoDiv = document.querySelector('.animate-pulse');
+                if (logoDiv) logoDiv.classList.remove('animate-pulse');
+              }}
+            />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to Inventory System
