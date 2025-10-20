@@ -185,3 +185,29 @@ class UsersResponse(BaseModel):
 class DeleteUserResponse(BaseModel):
     success: bool
     message: str
+
+# Profile Management Schemas
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+class UserMeResponse(BaseModel):
+    id: int
+    username: str
+    name: Optional[str] = None
+    role: str
+    created_at: datetime
+    
+    @field_validator('role', mode='before')
+    @classmethod
+    def convert_role_enum_to_string(cls, v):
+        if hasattr(v, 'value'):
+            return v.value
+        return v
+    
+    class Config:
+        from_attributes = True
+
+class ProfileUpdateResponse(BaseModel):
+    message: str

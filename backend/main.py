@@ -443,6 +443,93 @@ def delete_sell_history(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# User Profile Endpoints
+@app.get("/user/me", response_model=schemas.UserMeResponse)
+def get_current_user_info(
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Get current user's profile information
+    GET /user/me
+    """
+    try:
+        return schemas.UserMeResponse(
+            id=current_user.id,
+            username=current_user.username,
+            name=current_user.name,
+            role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
+            created_at=current_user.created_at
+        )
+    except Exception as e:
+        print(f"Error fetching user info: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user information")
+
+@app.put("/user/update_profile", response_model=schemas.ProfileUpdateResponse)
+def update_user_profile(
+    profile_data: schemas.ProfileUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Update current user's profile
+    PUT /user/update_profile
+    """
+    try:
+        # Get the user from database
+        user = db.query(models.User).filter(models.User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Update name if provided
+        if profile_data.name is not None:
+            user.name = profile_data.name.strip() if profile_data.name.strip() else None
+        
+        # Update username if provided and different
+        if profile_data.username is not None and profile_data.username != user.username:
+            # Check if username already exists
+            existing_user = db.query(models.User).filter(
+                models.User.username == profile_data.username,
+                models.User.id != user.id
+            ).first()
+            
+            if existing_user:
+                raise HTTPException(status_code=400, detail="Username already exists")
+            
+            user.username = profile_data.username
+        
+        # Update password if provided
+        if profile_data.password is not None:
+            from auth import get_password_hash
+            user.password_hash = get_password_hash(profile_data.password)
+        
+        # Commit changes to database
+        db.commit()
+        db.refresh(user)
+        
+        # Log activity for audit trail
+        try:
+            from activity import log_activity
+            log_activity(
+                db,
+                user,
+                "Update Profile",
+                f"user {user.username}",
+                f"User updated their profile"
+            )
+        except Exception as log_error:
+            print(f"Warning: Failed to log activity: {str(log_error)}")
+        
+        return schemas.ProfileUpdateResponse(message="Profile updated successfully")
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 400, 404)
+        raise
+    except Exception as e:
+        # Rollback any database changes
+        db.rollback()
+        print(f"Error updating user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update profile")
+
 @app.get("/")
 def root():
     return {"message": "Inventory Management API is running!"}

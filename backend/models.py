@@ -53,6 +53,7 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
+    name = Column(String, nullable=True)  # Full name field
     password_hash = Column(String)
     role = Column(Enum(UserRole), default=UserRole.viewer)
     created_at = Column(DateTime, default=func.now())

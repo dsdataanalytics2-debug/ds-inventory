@@ -141,13 +141,19 @@ const Navbar = () => {
             
             {/* User Info and Logout */}
             <div className="flex items-center space-x-2 ml-4 border-l border-blue-500 pl-4">
-              <div className="flex items-center text-sm">
+              <Link
+                href="/profile"
+                className={`flex items-center text-sm px-3 py-2 rounded-md hover:bg-blue-500 transition-colors ${
+                  isActive('/profile') ? 'bg-blue-700' : ''
+                }`}
+                title="View Profile"
+              >
                 <User className="w-4 h-4 mr-1" />
-                <span>{user?.username}</span>
+                <span className="hidden sm:inline">{user?.username}</span>
                 <span className="ml-2 px-2 py-1 text-xs bg-blue-500 rounded-full">
                   {user?.role}
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-500"
