@@ -61,7 +61,7 @@ const Profile = () => {
   const fetchUserProfile = async () => {
     try {
       setLoading(true)
-      const response = await apiCall('http://localhost:8000/user/me')
+      const response = await apiCall('/user/me')
       
       if (!response.ok) {
         throw new Error('Failed to fetch profile')
@@ -139,7 +139,7 @@ const Profile = () => {
         updateData.password = formData.password
       }
 
-      const response = await apiCall('http://localhost:8000/user/update_profile', {
+      const response = await apiCall('/user/update_profile', {
         method: 'PUT',
         body: JSON.stringify(updateData)
       })

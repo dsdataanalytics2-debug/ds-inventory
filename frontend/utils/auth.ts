@@ -118,7 +118,13 @@ export const getAuthHeaders = (): Record<string, string> => {
 export const apiCall = async (url: string, options: RequestInit = {}) => {
   const headers = getAuthHeaders();
   
-  const response = await fetch(url, {
+  // Use environment variable for API URL or fallback to localhost
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  
+  // If URL is relative, prepend the base URL
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  
+  const response = await fetch(fullUrl, {
     ...options,
     headers: {
       ...headers,

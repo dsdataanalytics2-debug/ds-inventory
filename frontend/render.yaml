@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ds-inventory-frontend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      npm install
+      npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://ds-inventory-server.onrender.com
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
