@@ -38,7 +38,7 @@ const ActivityHistory = () => {
       setLoading(true);
       
       // Build URL based on permissions and view mode
-      let url = 'http://localhost:8000/activity-logs';
+      let url = '/activity-logs';
       
       // If user can't view all activities, or they chose to view only their own
       if (!canViewAll || viewMode === 'own') {

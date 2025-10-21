@@ -115,14 +115,24 @@ export const getAuthHeaders = (): Record<string, string> => {
   return headers;
 };
 
+// Get API base URL from environment
+const getApiBaseUrl = (): string => {
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+};
+
+// Helper function to build full API URL
+export const buildApiUrl = (endpoint: string): string => {
+  const baseUrl = getApiBaseUrl();
+  // Remove leading slash if present to avoid double slashes
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return `${baseUrl}/${cleanEndpoint}`;
+};
+
 export const apiCall = async (url: string, options: RequestInit = {}) => {
   const headers = getAuthHeaders();
   
-  // Use environment variable for API URL or fallback to localhost
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  
   // If URL is relative, prepend the base URL
-  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  const fullUrl = url.startsWith('http') ? url : buildApiUrl(url);
   
   const response = await fetch(fullUrl, {
     ...options,

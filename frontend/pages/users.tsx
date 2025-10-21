@@ -42,7 +42,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiCall('http://localhost:8000/users');
+      const response = await apiCall('/users');
       const data = await response.json();
       setUsers(data.users || []);
       setError('');
@@ -60,7 +60,7 @@ const UserManagement = () => {
 
     try {
       console.log('Creating user with data:', createFormData);
-      const response = await apiCall('http://localhost:8000/register', {
+      const response = await apiCall('/register', {
         method: 'POST',
         body: JSON.stringify(createFormData)
       });
@@ -105,7 +105,7 @@ const UserManagement = () => {
     }
 
     try {
-      const response = await apiCall(`http://localhost:8000/users/${userId}`, {
+      const response = await apiCall(`/users/${userId}`, {
         method: 'DELETE'
       });
 

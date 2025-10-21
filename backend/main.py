@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from typing import Optional, Dict, Any
-from datetime import timedelta
+from datetime import datetime, timedelta
+from contextlib import asynccontextmanager
 
 import models
 import schemas
@@ -14,16 +16,18 @@ from activity import get_activity_logs
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Inventory Management API", version="1.0.0")
-
-# Create default superadmin user on startup
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     db = SessionLocal()
     try:
         create_superadmin(db)
     finally:
         db.close()
+    yield
+    # Shutdown (if needed)
+
+app = FastAPI(title="Inventory Management API", version="1.0.0", lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(
@@ -546,10 +550,12 @@ def health_check():
     return {
         "status": "healthy",
         "message": "API is running",
-        "timestamp": func.now().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    import os
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)

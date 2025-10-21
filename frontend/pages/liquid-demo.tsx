@@ -25,7 +25,7 @@ const LiquidDemo = () => {
   // Fetch enhanced summary data
   const fetchSummary = async () => {
     try {
-      const response = await apiCall('http://localhost:8000/summary/enhanced')
+      const response = await apiCall('/summary/enhanced')
       const data = await response.json()
       setProducts(data.products)
     } catch (error) {

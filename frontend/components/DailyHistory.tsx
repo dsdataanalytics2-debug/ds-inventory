@@ -33,7 +33,7 @@ const DailyHistory = () => {
   const fetchTransactionHistory = async (start?: string, end?: string) => {
     try {
       setLoading(true);
-      let url = 'http://localhost:8000/daily-history';
+      let url = '/daily-history';
       
       const params = new URLSearchParams();
       if (start) params.append('start', start);
@@ -151,8 +151,8 @@ const DailyHistory = () => {
     try {
       setDeleting(true);
       const endpoint = deleteConfirmation.transactionType === 'add' 
-        ? `http://localhost:8000/history/add/${deleteConfirmation.transactionId}`
-        : `http://localhost:8000/history/sell/${deleteConfirmation.transactionId}`;
+        ? `/history/add/${deleteConfirmation.transactionId}`
+        : `/history/sell/${deleteConfirmation.transactionId}`;
 
       const response = await apiCall(endpoint, {
         method: 'DELETE'

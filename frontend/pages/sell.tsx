@@ -20,7 +20,7 @@ const SellProduct = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await apiCall('http://localhost:8000/products')
+        const response = await apiCall('/products')
         const data = await response.json()
         setProducts(data.products)
       } catch (error) {
@@ -67,7 +67,7 @@ const SellProduct = () => {
     setMessage('')
 
     try {
-      const response = await apiCall('http://localhost:8000/sell', {
+      const response = await apiCall('/sell', {
         method: 'POST',
         body: JSON.stringify({
           product_name: formData.product_name,
